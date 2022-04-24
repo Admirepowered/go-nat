@@ -280,8 +280,9 @@ func udp_rec(addr1 string) { //Server Handle
 					tt[0] = uint8(len(info))
 					sed = BytesCombine(sed, tt, []byte(info))
 					//sed[1] = sed[1] + 1
-					sendto := string(rec[i].ip) + ":" + string(rec[i].port)
-					sendto = rec[i].ip.String() + ":" + fmt.Sprintf("%d", rec[i].port)
+
+					//sendto := string(rec[i].ip) + ":" + string(rec[i].port)
+					sendto := rec[i].ip.String() + ":" + fmt.Sprintf("%d", rec[i].port)
 
 					tt[0] = uint8(found)
 					sed = BytesCombine(sed, tt)
@@ -480,7 +481,7 @@ func Establish_UDP_tunl(gro []byte, addr1 string, port int) {
 			fmt.Println(data)
 		} else {
 			localaddr = addr
-			fmt.Println("Ready to Send to Remote:\n")
+			//fmt.Println("Ready to Send to Remote:\n")
 			fmt.Println(data2)
 
 			//gro = BytesCombine(tt, data2[:n])
@@ -651,7 +652,7 @@ func Establish_UDP_tunl2(gro []byte, addr1 string) {
 			UDPlistener.WriteTo(data[2:n], sendaddr)
 
 		} else {
-			fmt.Println("Ready to Send to Remote:\n")
+			//fmt.Println("Ready to Send to Remote:\n")
 			fmt.Println(data2)
 			UDPlistener.WriteTo(data2[:n], addr)
 
