@@ -284,10 +284,10 @@ func udp_rec(addr1 string) { //Server Handle
 					//sendto := string(rec[i].ip) + ":" + string(rec[i].port)
 					sendto := rec[i].ip.String() + ":" + fmt.Sprintf("%d", rec[i].port)
 
-					tt[0] = uint8(found)
+					tt[0] = uint8(found) //connect端
 					sed = BytesCombine(sed, tt)
 
-					tt[0] = uint8(i)
+					tt[0] = uint8(i) //接受connect请求
 					sed = BytesCombine(sed, tt)
 
 					fmt.Println(info, sendto)
@@ -308,6 +308,25 @@ func udp_rec(addr1 string) { //Server Handle
 			//fmt.Println(n, addr)
 			//rec = append(rec, rr)
 
+		}
+		if data[0] == 5 { //Transfer function
+			//var rr connect
+			fmt.Println(data[:n])
+			fist := data[1]
+			second := data[2] //from this
+			rec[second].wip = addr.IP
+			rec[second].port = addr.Port
+
+			udpAddr, _ := net.ResolveUDPAddr("udp", rec[fist].wip.String()+":"+fmt.Sprint(rec[fist].wport))
+			var tt = []byte{0}
+
+			info := rec[second].wip.String() + ":" + fmt.Sprintf("%d", rec[second].wport)
+			tt[0] = uint8(len(info))
+
+			UDPlistener.WriteTo(BytesCombine([]byte{5}, tt, []byte(info)), udpAddr)
+			//UDPlistener.WriteToUDP(sed, addr)
+
+			work = 0
 		}
 
 	}
@@ -359,7 +378,7 @@ func client(addr1 string) {
 		return
 	}
 	go run(UDPlistener, addr1)
-	go rec1(UDPlistener)
+	go rec1(UDPlistener, addr1)
 	//command := ""
 	for {
 
@@ -469,12 +488,29 @@ func Establish_UDP_tunl(gro []byte, addr1 string, port int) {
 			if localaddr != nil {
 				UDPlistener.WriteTo(data[:n], localaddr)
 			} else {
+				if data[0] == 4 {
+					tt := []byte{0, 0}
 
-				tt := []byte{0, 0}
+					tt[0] = uint8(port >> 8)
+					tt[1] = uint8(port)
+					UDPlistener.WriteTo(tt, addr)
+				}
+				if data[0] == 5 {
+					tt := []byte{0, 0}
 
-				tt[0] = uint8(port >> 8)
-				tt[1] = uint8(port)
-				UDPlistener.WriteTo(tt, addr)
+					tt[0] = uint8(port >> 8)
+					tt[1] = uint8(port)
+
+					data = data[1:]
+
+					len := data[0]
+					addrP := string(data[1:len])
+					addrPP, err := net.ResolveUDPAddr("udp", addrP)
+					if checkError(err) {
+						return
+					}
+					UDPlistener.WriteTo(tt, addrPP)
+				}
 			}
 
 			fmt.Printf("\nn=%d\n", n)
@@ -538,7 +574,7 @@ func run(UDPlistener *net.UDPConn, addr1 string) {
 	}
 
 }
-func rec1(UDPlistener *net.UDPConn) {
+func rec1(UDPlistener *net.UDPConn, addrc string) {
 	for {
 		data2 := make([]byte, 1024)
 		//读取
@@ -574,9 +610,9 @@ func rec1(UDPlistener *net.UDPConn) {
 			fmt.Println(data2[:n])
 			data := data2[1:n]
 			test := data[1 : data[0]+1]
-			fmt.Println(test, data[data[0]+1], data[data[0]+2])
+			fmt.Println(test, data[data[0]+1], data[data[0]+2], data[len(data)-2:])
 			//fmt.Println(string(test))
-			go Establish_UDP_tunl2([]byte{4, 0}, string(test))
+			go Establish_UDP_tunl2(string(test), data[len(data)-2:], addrc)
 
 			//addr, _ := net.ResolveUDPAddr("udp", string(test))
 			//UDPlistener.WriteToUDP([]byte{4, 0}, addr)
@@ -600,7 +636,7 @@ func rec1(UDPlistener *net.UDPConn) {
 	}
 }
 
-func Establish_UDP_tunl2(gro []byte, addr1 string) {
+func Establish_UDP_tunl2(addr1 string, trans []byte, addrc string) {
 	//data := make([]byte, 1024)
 	//UDPlistener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
 	UDPlistener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(0, 0, 0, 0), Port: 0})
@@ -612,7 +648,10 @@ func Establish_UDP_tunl2(gro []byte, addr1 string) {
 	if checkError(err) {
 		return
 	}
-	UDPlistener.WriteTo(gro, addr)
+	UDPlistener.WriteTo([]byte{4, 0}, addr)
+	udpAddr, _ := net.ResolveUDPAddr("udp", addrc)
+	UDPlistener.WriteTo(BytesCombine([]byte{5}, trans), udpAddr)
+
 	var port int
 	portinfo := make([]byte, 1024)
 	nn, c, errc := UDPlistener.ReadFrom(portinfo)
