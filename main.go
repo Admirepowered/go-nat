@@ -372,7 +372,7 @@ func client(addr1 string) {
 	//id=b
 	//group=c
 	fmt.Printf("[Client]Runing connecting to %v", addr1)
-	UDPlistener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
+	UDPlistener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(0, 0, 0, 0), Port: 0})
 
 	if checkError(err) {
 		return
@@ -540,12 +540,13 @@ func Establish_UDP_tunl(gro []byte, addr1 string, port int) {
 
 func run(UDPlistener *net.UDPConn, addr1 string) {
 
-	fmt.Println("Using Local UDP port:", UDPlistener.LocalAddr().(*net.UDPAddr).Port)
+	fmt.Println("Using Local UDP port:", UDPlistener.LocalAddr().(*net.UDPAddr).IP, UDPlistener.LocalAddr().(*net.UDPAddr).Port)
 	for {
 		//var addr net.UDPAddr
 		//addr.IP = net.IP(strings.Split(serverdd, ":")[0])
 		//addr.Port, err = strconv.Atoi(strings.Split(serverdd, ":")[1])
 		addr, err := net.ResolveUDPAddr("udp", addr1)
+		//fmt.Println(addr.String())
 		if checkError(err) {
 			time.Sleep(4 * time.Second)
 			continue
@@ -640,7 +641,7 @@ func Establish_UDP_tunl2(addr1 string, trans []byte, addrc string) {
 	//data := make([]byte, 1024)
 	//UDPlistener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
 	UDPlistener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(0, 0, 0, 0), Port: 0})
-	fmt.Printf("Waitting for data from:%s,Plase connect with this port\n", UDPlistener.LocalAddr().String())
+	fmt.Printf("Waitting for data from:%s,Ready to connectt\n", UDPlistener.LocalAddr().String())
 	if checkError(err) {
 		return
 	}
