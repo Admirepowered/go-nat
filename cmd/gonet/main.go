@@ -13,6 +13,12 @@ import (
 	"gonet/internal/server"
 )
 
+var (
+	version = "dev"
+	commit  = "unknown"
+	date    = "unknown"
+)
+
 func main() {
 	if len(os.Args) < 2 {
 		usage()
@@ -33,6 +39,8 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "version":
+		fmt.Printf("gonet version=%s commit=%s date=%s\n", version, commit, date)
 	default:
 		usage()
 		os.Exit(2)
@@ -93,4 +101,5 @@ func usage() {
 	fmt.Println("Usage:")
 	fmt.Println("  gonet server [--listen :7000]")
 	fmt.Println("  gonet client --connect 127.0.0.1:7000 --group demo [--control udp|tcp]")
+	fmt.Println("  gonet version")
 }

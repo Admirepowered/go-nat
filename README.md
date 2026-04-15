@@ -20,6 +20,31 @@
 go build ./cmd/gonet
 ```
 
+或者使用 `Makefile`：
+
+```bash
+make build
+make test
+make release VERSION=v1.0.0
+```
+
+`make release` 会输出常见平台归档到 `dist/`：
+
+- `linux/amd64`
+- `linux/arm64`
+- `windows/amd64`
+- `windows/arm64`
+- `darwin/amd64`
+- `darwin/arm64`
+
+## GitHub Actions
+
+仓库已包含 GitHub Actions workflow：
+
+- PR 和分支 push 时自动执行 `go test ./...`
+- 自动构建常见平台二进制并上传 workflow artifacts
+- 当推送 `v*` tag 时，会把构建产物上传到 GitHub Release
+
 ## 启动服务端
 
 ```bash
